@@ -1,0 +1,48 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <UsingTask TaskName="TransformXml"
+             AssemblyFile="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v11.0\Web\Microsoft.Web.Publishing.Tasks.dll"/>
+  <PropertyGroup>
+    <Configuration>Release</Configuration>
+    <SolutionFile>CallWall.com.sln</SolutionFile>
+    <DeployPath>.\deploy</DeployPath>
+    <TransformInputFile>src\CallWall\Web.config</TransformInputFile>
+    <TransformFile>src\CallWall\Web.$(Configuration).config</TransformFile>
+    <TransformOutputFile>$(DeployPath)\Web.config</TransformOutputFile>
+  </PropertyGroup>
+
+  <Target Name="Clean">
+    <Message Text="=== CLEAN === " />
+  </Target>
+
+  <Target Name="Compile">
+    <Message Text="=== COMPILING $(Configuration) configuration === " />
+    <MSBuild Projects="$(SolutionFile)"
+				     Properties="Configuration=$(Configuration)" />
+  </Target>
+
+  <Target Name="Test">
+    <Message Text="=== TEST === " />
+  </Target>
+
+  <Target Name="Package">
+    <Message Text="=== PACKAGE === " />
+    <RemoveDir Directories="$(DeployPath)" />
+    <MakeDir Directories="$(DeployPath)"/>
+    <ItemGroup>
+      <DeployWebFiles Include="src\CallWall\**\*.*"
+                      Exclude="**\*.cs;**\*.csproj;**\*.user;**\obj\**;**\*.pdb;" />
+    </ItemGroup>
+
+    <Copy SourceFiles="@(DeployWebFiles)"
+			    DestinationFiles="@(DeployWebFiles->'$(DeployPath)\%(RecursiveDir)%(Filename)%(Extension)')" />
+  </Target>
+
+  <Target Name="Transform">
+    <Message Text="=== TRANSFORM CONFIGURATION ===" />
+    <TransformXml Source="$(TransformInputFile)"
+                  Transform="$(TransformFile)"
+                  Destination="$(TransformOutputFile)" />
+  </Target>
+
+  <Target Name="BuildAll" DependsOnTargets="Compile;Test;Package;Transform" />
+</Project>
