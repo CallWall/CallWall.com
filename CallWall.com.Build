@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Package" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!-- User defined properties-->
+  <PropertyGroup>
+    <MSBuildCommunityTasksPath>.\</MSBuildCommunityTasksPath>
+    <PackageLocation Condition="'$(PackageLocation)'==''">..\..\Deploy\Callwall.com.webdeploy.zip</PackageLocation>
+    <BUILD_NUMBER Condition="'$(BUILD_NUMBER)'==''">0.0.0.1</BUILD_NUMBER>
+    <Configuration Condition="'$(Configuration)'==''">Release</Configuration>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Projects Include=".\src\CallWall\CallWall.csproj"/>
+  </ItemGroup>
+  
+  <Import Project=".\tools\MSBuild.Community.Tasks.Targets" />
+  
+  <!-- User targets -->
+  <Target Name="Clean">
+  </Target>
+  
+  <Target Name="Version">
+    <AssemblyInfo CodeLanguage="CS"
+                  OutputFile=".\src\SharedAssemblyInfo.cs"
+                  AssemblyVersion="$(BUILD_NUMBER)"
+                  AssemblyFileVersion="$(BUILD_NUMBER)"
+                  AssemblyCompany="CallWall Operations Ltd"
+                  AssemblyProduct="CallWall Web"
+                  AssemblyCopyright="Copyright © CallWall Operations Ltd 2013"
+                />
+  </Target>
+  
+  <Target Name="Package" DependsOnTargets="Clean; Version">
+    <MSBuild Projects="@(Projects)"
+			       Targets="Package"
+             Properties="Configuration=$(Configuration);PackageLocation=$(PackageLocation)" >
+    </MSBuild>
+  </Target>
+  
+</Project>
