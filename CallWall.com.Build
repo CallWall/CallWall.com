@@ -1,48 +1,40 @@
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <UsingTask TaskName="TransformXml"
-             AssemblyFile="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v11.0\Web\Microsoft.Web.Publishing.Tasks.dll"/>
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Package" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!-- User defined properties-->
   <PropertyGroup>
-    <Configuration>Release</Configuration>
-    <SolutionFile>CallWall.com.sln</SolutionFile>
-    <DeployPath>.\deploy</DeployPath>
-    <TransformInputFile>src\CallWall\Web.config</TransformInputFile>
-    <TransformFile>src\CallWall\Web.$(Configuration).config</TransformFile>
-    <TransformOutputFile>$(DeployPath)\Web.config</TransformOutputFile>
+    <MSBuildCommunityTasksPath>.\</MSBuildCommunityTasksPath>
+    <PackageLocation Condition="'$(PackageLocation)'==''">..\..\Deploy\Callwall.com.webdeploy.zip</PackageLocation>
+    <BUILD_NUMBER Condition="'$(BUILD_NUMBER)'==''">0.0.0.1</BUILD_NUMBER>
+    <Configuration Condition="'$(Configuration)'==''">Release</Configuration>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Projects Include=".\src\CallWall\CallWall.csproj"/>
+  </ItemGroup>
+  
+  <Import Project=".\tools\MSBuild.Community.Tasks.Targets" />
+  
+  <!-- User targets -->
   <Target Name="Clean">
-    <Message Text="=== CLEAN === " />
   </Target>
-
-  <Target Name="Compile">
-    <Message Text="=== COMPILING $(Configuration) configuration === " />
-    <MSBuild Projects="$(SolutionFile)"
-				     Properties="Configuration=$(Configuration)" />
+  
+  <Target Name="Version">
+    <AssemblyInfo CodeLanguage="CS"
+                  OutputFile=".\src\SharedAssemblyInfo.cs"
+                  AssemblyVersion="$(BUILD_NUMBER)"
+                  AssemblyFileVersion="$(BUILD_NUMBER)"
+                  AssemblyCompany="CallWall Operations Ltd"
+                  AssemblyProduct="CallWall Web"
+                  AssemblyCopyright="Copyright © CallWall Operations Ltd 2013"
+                />
   </Target>
-
-  <Target Name="Test">
-    <Message Text="=== TEST === " />
+  
+  <Target Name="Package" DependsOnTargets="Clean; Version">
+    <MSBuild Projects="@(Projects)"
+			       Targets="Package"
+             Properties="Configuration=$(Configuration);PackageLocation=$(PackageLocation)" >
+    </MSBuild>
   </Target>
-
-  <Target Name="Package">
-    <Message Text="=== PACKAGE === " />
-    <RemoveDir Directories="$(DeployPath)" />
-    <MakeDir Directories="$(DeployPath)"/>
-    <ItemGroup>
-      <DeployWebFiles Include="src\CallWall\**\*.*"
-                      Exclude="**\*.cs;**\*.csproj;**\*.user;**\obj\**;**\*.pdb;" />
-    </ItemGroup>
-
-    <Copy SourceFiles="@(DeployWebFiles)"
-			    DestinationFiles="@(DeployWebFiles->'$(DeployPath)\%(RecursiveDir)%(Filename)%(Extension)')" />
-  </Target>
-
-  <Target Name="Transform">
-    <Message Text="=== TRANSFORM CONFIGURATION ===" />
-    <TransformXml Source="$(TransformInputFile)"
-                  Transform="$(TransformFile)"
-                  Destination="$(TransformOutputFile)" />
-  </Target>
-
-  <Target Name="BuildAll" DependsOnTargets="Compile;Test;Package;Transform" />
+  
 </Project>
